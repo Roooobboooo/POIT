@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <title>Skuskove zadanie</title>
+   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+   <script src="static/libs/gauge.min.js"></script>
+   <script type="text/javascript" charset="utf-8">
+   //https://canvas-gauges.com/documentation/user-guide/configuration
+     $(document).ready(function() {    
+      var gauge = new RadialGauge({
+          renderTo: 'canvasID',
+          width: 300,
+          height: 300,
+          units: "A",
+          minValue: 0,
+          maxValue: 1.5,
+          majorTicks: [
+              "0",
+              "0.05",
+              "0.1",
+              "0.15",
+              "0.2",
+              "0.25",
+              "0.3",
+              "0.35",
+              "0.4",
+              "0.45",
+              "0.5",
+              "0.55",
+              "0.6",
+              "0.65",
+              "0.7",
+              "0.75",
+              "0.8",
+              "0.85",
+              "0.9",
+              "0.95",
+              "1.0",
+              "1.5"
+          ],
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 1.5,
+                  "color": "rgba(200, 50, 50, .75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: false,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 1500,
+          animationRule: "linear"
+      });
+      gauge.draw();
+      gauge.value = "0";
+
+      
+      namespace = '/test';
+      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+      socket.on('connect', function() {
+        socket.emit('my_event', {data: 'I\'m connected!', value: 1}); });
+
+      socket.on('my_response', function(msg) {
+        console.log(msg.data);
+        $('#log').append('Received #'+msg.count+': '+msg.data+'<br>').html(); 
+        gauge.value = msg.data;                
+        });
+
+      $('form#emit').submit(function(event) {
+          socket.emit('my_event', {value: $('#emit_value').val()});
+          return false; });
+      $('#buttonVal').click(function(event) {
+          //console.log($('#buttonVal').val());
+          socket.emit('click_event', {value: $('#buttonVal').val()});
+          return false; });
+          
+          $('form#start').submit(function(event) {
+          socket.emit('start_request');
+          return false; }); 
+          
+      $('form#stop').submit(function(event) {
+          socket.emit('stop_request');
+          return false; }); 
+          
+      $('form#disconnect').submit(function(event) {
+          socket.emit('disconnect_request');
+          return false; });         
+      });
+    </script>
+ </head>
+ <body>
+  <h1>Skuskove zadanie</h1>
+  <form id="disconnect" method="POST" action="#">
+    <input type="submit" value="Disconnect">
+  </form> 
+  <form id="start" sethod="POST" action="#">
+    <input type="submit" value="start">
+  </form>
+   <form id="stop" sethod="POST" action="#">
+    <input type="submit" value="stop">
+  </form>
+  <canvas id="canvasID"></canvas>
+  <h2>Receive:</h2>
+  <div id="log"></div>
+ </body>
+</html>
